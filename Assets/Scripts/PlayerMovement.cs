@@ -89,6 +89,5 @@ public class PlayerMovement : MonoBehaviour
     void UpdateHealthBarColor()
     {
         float healthPercentage = (float)currentHealth / maxHealth;
-        healthFillImage.color = Color.Lerp(Color.white, Color.red, healthPercentage); // Health bar color changes from white to red based on health percentage
     }
 }
