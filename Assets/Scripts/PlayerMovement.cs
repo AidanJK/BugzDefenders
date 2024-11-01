@@ -5,89 +5,156 @@ using UnityEngine.UI; // Required for UI elements like Slider
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float moveSpeed = 5f; // Speed at which the player moves
-    public int maxHealth = 100; // Maximum health of the player
-    private int currentHealth; // Current health of the player
+    public float moveSpeed = 5f;           // Speed at which the player moves
+    public int maxHealth = 100;            // Maximum health of the player
+    private int currentHealth;             // Current health of the player
 
-    public Slider healthSlider; // Reference to the health slider in the UI
-    public Image healthFillImage; // Reference to the Image component of the health slider fill area
+    public Slider healthSlider;            // Reference to the health slider in the UI
+    public Image healthFillImage;          // Reference to the Image component of the health slider fill area
 
-    private Vector2 movement; // Variable to store movement input
-    private Animator animator; // Reference to the Animator component
+    private Vector2 movement;              // Variable to store movement input
+    private Animator animator;             // Reference to the Animator component
     private SpriteRenderer spriteRenderer; // Reference to the SpriteRenderer component
+    private Rigidbody2D rb;                // Reference to the Rigidbody2D component
 
     void Start()
     {
-        spriteRenderer = GetComponent<SpriteRenderer>(); // Get the SpriteRenderer component attached to this GameObject
-        animator = GetComponent<Animator>(); // Get the Animator component attached to this GameObject
-        currentHealth = maxHealth; // Set current health to maximum health
-        healthSlider.maxValue = maxHealth; // Set slider max value to match player max health
-        healthSlider.value = currentHealth; // Initialize slider value
+        // Get components and check for null references
+        rb = GetComponent<Rigidbody2D>();
+        if (rb == null)
+        {
+            Debug.LogError("Rigidbody2D component missing from the player.");
+        }
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null)
+        {
+            Debug.LogError("SpriteRenderer component missing from the player.");
+        }
+
+        animator = GetComponent<Animator>();
+        if (animator == null)
+        {
+            Debug.LogError("Animator component missing from the player.");
+        }
+
+        // Initialize health
+        currentHealth = maxHealth;
+
+        if (healthSlider != null)
+        {
+            healthSlider.maxValue = maxHealth;
+            healthSlider.value = currentHealth;
+        }
+        else
+        {
+            Debug.LogError("HealthSlider reference is missing.");
+        }
+
+        if (healthFillImage == null)
+        {
+            Debug.LogError("HealthFillImage reference is missing.");
+        }
+
         UpdateHealthBarColor(); // Set initial health bar color
     }
 
     void Update()
     {
-        // Get input from WASD keys
-        movement.x = 0f;
-        movement.y = 0f;
+        // Get input from WASD keys or arrow keys
+        movement.x = Input.GetAxisRaw("Horizontal");
+        movement.y = Input.GetAxisRaw("Vertical");
 
-        // Check for each input key and set movement accordingly
-        if (Input.GetKey(KeyCode.W))
+        // Normalize the movement vector to prevent faster diagonal movement
+        if (movement.sqrMagnitude > 1)
         {
-            movement.y = 1f; // Move up
+            movement = movement.normalized;
         }
-        if (Input.GetKey(KeyCode.S))
-        {
-            movement.y = -1f; // Move down
-        }
-        if (Input.GetKey(KeyCode.A))
-        {
-            movement.x = -1f; // Move left
-            spriteRenderer.flipX = true; // Flip the sprite horizontally to face left
-        }
-        if (Input.GetKey(KeyCode.D))
-        {
-            movement.x = 1f; // Move right
-            spriteRenderer.flipX = false; // Reset the sprite flip to face right
-        }
+
+        // Flip the sprite based on mouse position relative to player
+        spriteRenderer.flipX = !facingRight();
 
         // Set the animator parameter based on movement
-        if (movement != Vector2.zero)
-        {
-            animator.SetBool("isRunning", true); // Set isRunning to true when there is movement
-        }
-        else
-        {
-            animator.SetBool("isRunning", false); // Set isRunning to false when idle
-        }
+        animator.SetBool("isRunning", movement != Vector2.zero);
     }
 
     void FixedUpdate()
     {
-        // Apply movement to the player character
-        // FixedUpdate is used for physics-related calculations for consistent results
-        transform.Translate(movement * moveSpeed * Time.fixedDeltaTime);
+        // Apply movement to the player character using Rigidbody2D for better physics handling
+        if (rb != null)
+        {
+            rb.MovePosition(rb.position + movement * moveSpeed * Time.fixedDeltaTime);
+        }
+    }
+
+    // Method to check if the player is moving
+    public bool IsMoving()
+    {
+        if (movement != Vector2.zero)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     // Method to handle player taking damage
     public void TakeDamage(int damage)
     {
         currentHealth -= damage; // Reduce current health by damage amount
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // Ensure health doesn't go below 0 or above maxHealth
-        healthSlider.value = currentHealth; // Update the health slider to reflect the new health value
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // Clamp health between 0 and maxHealth                                                         
+
+        if (healthSlider != null)
+        {
+            healthSlider.value = currentHealth; // Update the health slider
+        }
+
         UpdateHealthBarColor(); // Update health bar color based on current health
 
         if (currentHealth <= 0)
         {
-            // Handle player death, such as triggering a death animation or restarting the level
+            // Handle player death
             Debug.Log("Player has died");
+            Die();
+        }
+    }
+
+    public bool facingRight()
+    {
+        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        bool facingRight = mousePosition.x >= transform.position.x;
+        return facingRight;
+    }
+
+    // Method to handle player death
+    void Die()
+    {
+        // Play death animation
+        animator.SetBool("isDead", true);
+
+        // Disable player movement
+        this.enabled = false; // Disable this script
+        rb.velocity = Vector2.zero; // Stop the player movement
+
+        // Trigger game over sequence in GameManager
+        GameManager gameManager = FindObjectOfType<GameManager>();
+        if (gameManager != null)
+        {
+            gameManager.PlayerDied();
         }
     }
 
     // Method to update the health bar color based on current health
     void UpdateHealthBarColor()
     {
-        float healthPercentage = (float)currentHealth / maxHealth;
+        if (healthFillImage != null)
+        {
+            float healthPercentage = (float)currentHealth / maxHealth;
+            // Interpolate between red (low health) and green (full health)
+            Color healthColor = Color.Lerp(Color.red, Color.green, healthPercentage);
+            healthFillImage.color = healthColor;
+        }
     }
 }
