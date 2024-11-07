@@ -7,7 +7,7 @@ public class Projectile : MonoBehaviour
     private Rigidbody2D rb;           // Reference to Rigidbody2D
     private Animator animator;        // Reference to Animator component
     private bool hasCollided = false; // Flag to prevent multiple collisions
-    [SerializeField] private float range = 20.0f;
+    [SerializeField] private float range = 10.0f;
 
     void Awake()
     {
@@ -60,10 +60,23 @@ public class Projectile : MonoBehaviour
             float impactAnimationLength = animator.GetCurrentAnimatorStateInfo(0).length;
             Destroy(gameObject, impactAnimationLength);
         }
-        else
+        if (collision.gameObject.CompareTag("Tiles"))
         {
-            // Destroy the projectile after the length of animation multiplied by range
-            float impactAnimationLength = animator.GetCurrentAnimatorStateInfo(0).length * range;
+            // Proceed with impact logic
+            if (hasCollided) return;
+            hasCollided = true;
+
+            // Stop the projectile movement
+            rb.velocity = Vector2.zero;
+
+            // Disable the collider to prevent further collisions
+            GetComponent<Collider2D>().enabled = false;
+
+            // Play the impact animation
+            animator.SetTrigger("Impact");
+
+            // Destroy the projectile after the impact animation
+            float impactAnimationLength = animator.GetCurrentAnimatorStateInfo(0).length;
             Destroy(gameObject, impactAnimationLength);
         }
     }

@@ -185,4 +185,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 10
   damage: 20
-  range: 10
+  range: 1

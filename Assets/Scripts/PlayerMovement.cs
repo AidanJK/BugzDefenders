@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI; // Required for UI elements like Slider
+using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -15,12 +15,14 @@ public class PlayerMovement : MonoBehaviour
     private Animator animator;
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
+    private AudioSource movementAudioSource;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
+        movementAudioSource = GetComponent<AudioSource>(); // Get the AudioSource component
 
         currentHealth = maxHealth;
 
@@ -33,46 +35,57 @@ public class PlayerMovement : MonoBehaviour
         UpdateHealthBarColor();
     }
 
-
     void Update()
     {
-        // Get input from WASD keys or arrow keys
+        // Get input for movement
         movement.x = Input.GetAxisRaw("Horizontal");
         movement.y = Input.GetAxisRaw("Vertical");
 
-        // Normalize the movement vector to prevent faster diagonal movement
+        // Normalize movement to prevent faster diagonal movement
         if (movement.sqrMagnitude > 1)
         {
             movement = movement.normalized;
         }
 
-        // Flip the sprite based on mouse position relative to player
+        // Flip the sprite based on direction
         spriteRenderer.flipX = !facingRight();
 
-        // Set the animator parameter based on movement
+        // Set animator parameters
         animator.SetBool("isRunning", movement != Vector2.zero);
+
+        // Play or stop the movement sound based on player movement
+        if (IsMoving() && !movementAudioSource.isPlaying)
+        {
+            movementAudioSource.Play();
+        }
+        else if(!IsMoving())
+        {
+            movementAudioSource.Stop();
+        }
     }
 
     void FixedUpdate()
     {
-        // Apply movement to the player character using Rigidbody2D for better physics handling
         if (rb != null)
         {
             rb.MovePosition(rb.position + movement * moveSpeed * Time.fixedDeltaTime);
         }
     }
 
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        // Check if the collision is with the Tilemap tagged as "Tiles"
+        if (collision.gameObject.CompareTag("Tiles"))
+        {
+            Debug.Log("Collided with Tiles");
+            // Add any specific collision handling logic here if necessary
+        }
+    }
+
     // Method to check if the player is moving
     public bool IsMoving()
     {
-        if (movement != Vector2.zero)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return movement != Vector2.zero;
     }
 
     // Method to handle player taking damage
@@ -107,8 +120,7 @@ public class PlayerMovement : MonoBehaviour
     public bool facingRight()
     {
         Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        bool facingRight = mousePosition.x >= transform.position.x;
-        return facingRight;
+        return mousePosition.x >= transform.position.x;
     }
 
     // Method to handle player death
@@ -140,3 +152,4 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 }
+
