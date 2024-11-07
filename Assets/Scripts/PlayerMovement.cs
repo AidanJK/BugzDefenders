@@ -5,40 +5,23 @@ using UnityEngine.UI; // Required for UI elements like Slider
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float moveSpeed = 5f;           // Speed at which the player moves
-    public int maxHealth = 100;            // Maximum health of the player
-    private int currentHealth;             // Current health of the player
+    public float moveSpeed = 5f;
+    public int maxHealth = 100;
+    private int currentHealth;
+    public Slider healthSlider;
+    public Image healthFillImage;
 
-    public Slider healthSlider;            // Reference to the health slider in the UI
-    public Image healthFillImage;          // Reference to the Image component of the health slider fill area
-
-    private Vector2 movement;              // Variable to store movement input
-    private Animator animator;             // Reference to the Animator component
-    private SpriteRenderer spriteRenderer; // Reference to the SpriteRenderer component
-    private Rigidbody2D rb;                // Reference to the Rigidbody2D component
+    private Vector2 movement;
+    private Animator animator;
+    private SpriteRenderer spriteRenderer;
+    private Rigidbody2D rb;
 
     void Start()
     {
-        // Get components and check for null references
         rb = GetComponent<Rigidbody2D>();
-        if (rb == null)
-        {
-            Debug.LogError("Rigidbody2D component missing from the player.");
-        }
-
         spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer == null)
-        {
-            Debug.LogError("SpriteRenderer component missing from the player.");
-        }
-
         animator = GetComponent<Animator>();
-        if (animator == null)
-        {
-            Debug.LogError("Animator component missing from the player.");
-        }
 
-        // Initialize health
         currentHealth = maxHealth;
 
         if (healthSlider != null)
@@ -46,18 +29,10 @@ public class PlayerMovement : MonoBehaviour
             healthSlider.maxValue = maxHealth;
             healthSlider.value = currentHealth;
         }
-        else
-        {
-            Debug.LogError("HealthSlider reference is missing.");
-        }
 
-        if (healthFillImage == null)
-        {
-            Debug.LogError("HealthFillImage reference is missing.");
-        }
-
-        UpdateHealthBarColor(); // Set initial health bar color
+        UpdateHealthBarColor();
     }
+
 
     void Update()
     {
@@ -103,22 +78,30 @@ public class PlayerMovement : MonoBehaviour
     // Method to handle player taking damage
     public void TakeDamage(int damage)
     {
-        currentHealth -= damage; // Reduce current health by damage amount
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // Clamp health between 0 and maxHealth                                                         
+        currentHealth -= damage;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
         if (healthSlider != null)
         {
-            healthSlider.value = currentHealth; // Update the health slider
+            healthSlider.value = currentHealth;
         }
 
-        UpdateHealthBarColor(); // Update health bar color based on current health
+        UpdateHealthBarColor();
+
+        // Start the flash red coroutine for damage feedback
+        StartCoroutine(FlashRed());
 
         if (currentHealth <= 0)
         {
-            // Handle player death
-            Debug.Log("Player has died");
             Die();
         }
+    }
+
+    IEnumerator FlashRed()
+    {
+        spriteRenderer.color = Color.red; // Change color to red
+        yield return new WaitForSeconds(0.1f); // Short delay
+        spriteRenderer.color = Color.white; // Revert color to normal
     }
 
     public bool facingRight()
@@ -152,7 +135,6 @@ public class PlayerMovement : MonoBehaviour
         if (healthFillImage != null)
         {
             float healthPercentage = (float)currentHealth / maxHealth;
-            // Interpolate between red (low health) and green (full health)
             Color healthColor = Color.Lerp(Color.red, Color.green, healthPercentage);
             healthFillImage.color = healthColor;
         }

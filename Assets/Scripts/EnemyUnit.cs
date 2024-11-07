@@ -4,48 +4,33 @@ using UnityEngine;
 
 public class EnemyUnit : MonoBehaviour
 {
-    public Transform[] patrolPoints;   // Array of points between which the enemy will patrol
-    public float patrolSpeed = 2f;     // Speed at which the enemy patrols
+    public Transform[] patrolPoints;
+    public float patrolSpeed = 2f;
 
-    public Transform player;           // Reference to the player's transform
-    public float detectionRadius = 5f; // Radius within which the enemy will detect and chase the player
-    public float stopDistance = 1.5f;  // Distance at which the enemy stops near the player
+    public Transform player;
+    public float detectionRadius = 5f;
+    public float stopDistance = 0.5f; // Adjusted for closer proximity to bugs
 
-    public int damageAmount = 10;      // Amount of damage the enemy deals to the player
+    public int damageAmount = 10;
+    public float attackCooldown = 1.0f; // Time in seconds between attacks
 
-    public int maxHealth = 50;         // Maximum health of the enemy
-    private int currentHealth;         // Current health of the enemy
+    public int maxHealth = 50;
+    private int currentHealth;
 
-    private int currentPointIndex = 0; // Current patrol point index
-    private bool chasingPlayer = false; // Flag to indicate if the enemy is chasing the player
-    private SpriteRenderer spriteRenderer; // Reference to the SpriteRenderer component
-    private Rigidbody2D rb;            // Reference to the Rigidbody2D component
+    private int currentPointIndex = 0;
+    private bool chasingPlayer = false;
+    private SpriteRenderer spriteRenderer;
+    private Rigidbody2D rb;
+    private Animator animator; // Reference to Animator component
+
+    private Transform currentTarget;
+    private float lastAttackTime = 0f; // Tracks the last time an attack was made
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        if (rb == null)
-        {
-            Debug.LogError("Rigidbody2D component missing from the enemy.");
-        }
-
         spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer == null)
-        {
-            Debug.LogError("SpriteRenderer component missing from the enemy.");
-        }
-
-        if (player == null)
-        {
-            Debug.LogError("Player Transform reference is missing.");
-        }
-
-        if (patrolPoints.Length == 0)
-        {
-            Debug.LogError("No patrol points assigned to the enemy.");
-        }
-
-        // Initialize health
+        animator = GetComponent<Animator>(); // Get Animator component
         currentHealth = maxHealth;
     }
 
@@ -53,46 +38,88 @@ public class EnemyUnit : MonoBehaviour
     {
         if (player == null || rb == null) return;
 
-        float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+        UpdateTarget();
 
-        if (distanceToPlayer <= detectionRadius)
+        float distanceToTarget = Vector2.Distance(transform.position, currentTarget.position);
+
+        if (distanceToTarget <= detectionRadius)
         {
-            chasingPlayer = true; // Start chasing the player
+            chasingPlayer = true;
         }
         else
         {
-            chasingPlayer = false; // Return to patrolling
+            chasingPlayer = false;
         }
 
-        if (chasingPlayer && distanceToPlayer > stopDistance)
+        if (chasingPlayer && distanceToTarget > stopDistance)
         {
-            ChasePlayer();
+            ChaseTarget();
         }
-        else if (!chasingPlayer)
+        else if (chasingPlayer && distanceToTarget <= stopDistance)
+        {
+            AttackTarget(); // Attack when close enough
+        }
+        else
         {
             Patrol();
         }
     }
 
-    void ChasePlayer()
+    void UpdateTarget()
     {
-        Vector2 directionToPlayer = (player.position - transform.position).normalized;
-        rb.MovePosition(rb.position + directionToPlayer * patrolSpeed * Time.fixedDeltaTime);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, detectionRadius);
+        Transform nearestBug = null;
+        float nearestBugDistance = detectionRadius;
 
-        // Flip the sprite based on movement direction
-        if (directionToPlayer.x > 0)
+        foreach (var hit in hits)
         {
-            // Moving Right
-            spriteRenderer.flipX = true;
-            
+            if (hit.CompareTag("Ally"))  // Assuming bugs have the tag "Ally"
+            {
+                float distance = Vector2.Distance(transform.position, hit.transform.position);
+                if (distance < nearestBugDistance)
+                {
+                    nearestBugDistance = distance;
+                    nearestBug = hit.transform;
+                }
+            }
         }
-        else if (directionToPlayer.x < 0)
+
+        currentTarget = nearestBug != null ? nearestBug : player;
+    }
+
+    void ChaseTarget()
+    {
+        Vector2 directionToTarget = (currentTarget.position - transform.position).normalized;
+        rb.MovePosition(rb.position + directionToTarget * patrolSpeed * Time.fixedDeltaTime);
+
+        spriteRenderer.flipX = directionToTarget.x > 0;
+    }
+
+    void AttackTarget()
+    {
+        if (Time.time - lastAttackTime >= attackCooldown)
         {
-            // Moving Left
-            spriteRenderer.flipX = false;
-            
+            if (currentTarget.CompareTag("Ally"))
+            {
+                BugFollowPlayer bugScript = currentTarget.GetComponent<BugFollowPlayer>();
+                if (bugScript != null)
+                {
+                    bugScript.TakeDamage(damageAmount);
+                    Debug.Log("Enemy damaged the bug!");
+                }
+            }
+            else if (currentTarget == player)
+            {
+                PlayerMovement playerScript = player.GetComponent<PlayerMovement>();
+                if (playerScript != null)
+                {
+                    playerScript.TakeDamage(damageAmount);
+                    Debug.Log("Enemy damaged the player!");
+                }
+            }
+
+            lastAttackTime = Time.time;
         }
-        // No flipping needed if directionToPlayer.x == 0
     }
 
     void Patrol()
@@ -104,71 +131,51 @@ public class EnemyUnit : MonoBehaviour
 
         rb.MovePosition(rb.position + directionToPoint * patrolSpeed * Time.fixedDeltaTime);
 
-        // Flip the sprite based on movement direction
         if (directionToPoint.x > 0)
         {
-            // Moving Right
             spriteRenderer.flipX = true;
         }
         else if (directionToPoint.x < 0)
         {
-            // Moving Left
             spriteRenderer.flipX = false;
         }
-        // No flipping needed if directionToPoint.x == 0
 
-        // Check if reached the patrol point
         if (Vector2.Distance(transform.position, targetPoint.position) < 0.1f)
         {
-            // Move to the next patrol point
             currentPointIndex = (currentPointIndex + 1) % patrolPoints.Length;
         }
     }
 
-    void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            PlayerMovement playerMovement = collision.gameObject.GetComponent<PlayerMovement>();
-            if (playerMovement != null)
-            {
-                playerMovement.TakeDamage(damageAmount); // Apply damage to the player on collision
-            }
-        }
-    }
-
-    // Method to handle taking damage
     public void TakeDamage(int damage)
     {
-        currentHealth -= damage; // Reduce current health by damage amount
-
-        // Optional: Visual feedback
+        currentHealth -= damage;
         StartCoroutine(FlashRed());
 
-        // Check if health has reached zero
         if (currentHealth <= 0)
         {
             Die();
         }
     }
 
-    // Method to handle enemy death
     void Die()
     {
+        if (animator != null)
+        {
+            animator.SetTrigger("Die"); // Trigger death animation
+        }
 
-        // Disable enemy components
+        // Disable enemy behavior and collider
         GetComponent<Collider2D>().enabled = false;
         this.enabled = false;
 
-        // Destroy the enemy game object
-        Destroy(gameObject);
+        // Destroy the game object after the animation completes
+        Destroy(gameObject, 0.45f); // Adjust the delay to match animation length
     }
 
-    // Coroutine for visual feedback when taking damage
     IEnumerator FlashRed()
     {
-        spriteRenderer.color = Color.red; // Change color to red
-        yield return new WaitForSeconds(0.1f); // Wait for a short time
-        spriteRenderer.color = Color.white; // Revert color back to normal
+        spriteRenderer.color = Color.red;
+        yield return new WaitForSeconds(0.1f);
+        spriteRenderer.color = Color.white;
     }
 }
