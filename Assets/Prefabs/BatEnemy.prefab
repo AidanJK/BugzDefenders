@@ -104,12 +104,16 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   patrolSpeed: 2
-  player: {fileID: 0}
+  playerObject: {fileID: 0}
+  playerPosition: {fileID: 0}
   detectionRadius: 5
   stopDistance: 1
+  invertedFlip: 0
   damageAmount: 10
   attackCooldown: 1
   maxHealth: 50
+  strengthLevel: 1
+  bugAllyPrefab: {fileID: 0}
 --- !u!50 &4413908900778492909
 Rigidbody2D:
   serializedVersion: 4
@@ -169,8 +173,8 @@ CapsuleCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.0063690147, y: -0.050244015}
-  m_Size: {x: 0.18342578, y: 0.23055553}
+  m_Offset: {x: -0.018238863, y: -0.042990208}
+  m_Size: {x: 0.15968609, y: 0.21604793}
   m_Direction: 0
 --- !u!95 &4153706773357185610
 Animator:

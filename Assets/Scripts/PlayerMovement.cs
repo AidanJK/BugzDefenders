@@ -8,6 +8,7 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 5f;
     public int maxHealth = 100;
     private int currentHealth;
+
     public Slider healthSlider;
     public Image healthFillImage;
 
@@ -22,8 +23,7 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
-        movementAudioSource = GetComponent<AudioSource>(); // Get the AudioSource component
-
+        movementAudioSource = GetComponent<AudioSource>();
         currentHealth = maxHealth;
 
         if (healthSlider != null)
@@ -37,28 +37,22 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // Get input for movement
         movement.x = Input.GetAxisRaw("Horizontal");
         movement.y = Input.GetAxisRaw("Vertical");
 
-        // Normalize movement to prevent faster diagonal movement
         if (movement.sqrMagnitude > 1)
         {
             movement = movement.normalized;
         }
 
-        // Flip the sprite based on direction
         spriteRenderer.flipX = !facingRight();
-
-        // Set animator parameters
         animator.SetBool("isRunning", movement != Vector2.zero);
 
-        // Play or stop the movement sound based on player movement
         if (IsMoving() && !movementAudioSource.isPlaying)
         {
             movementAudioSource.Play();
         }
-        else if(!IsMoving())
+        else if (!IsMoving())
         {
             movementAudioSource.Stop();
         }
@@ -74,21 +68,17 @@ public class PlayerMovement : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // Check if the collision is with the Tilemap tagged as "Tiles"
         if (collision.gameObject.CompareTag("Tiles"))
         {
             Debug.Log("Collided with Tiles");
-            // Add any specific collision handling logic here if necessary
         }
     }
 
-    // Method to check if the player is moving
     public bool IsMoving()
     {
         return movement != Vector2.zero;
     }
 
-    // Method to handle player taking damage
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
@@ -100,8 +90,6 @@ public class PlayerMovement : MonoBehaviour
         }
 
         UpdateHealthBarColor();
-
-        // Start the flash red coroutine for damage feedback
         StartCoroutine(FlashRed());
 
         if (currentHealth <= 0)
@@ -112,9 +100,9 @@ public class PlayerMovement : MonoBehaviour
 
     IEnumerator FlashRed()
     {
-        spriteRenderer.color = Color.red; // Change color to red
-        yield return new WaitForSeconds(0.1f); // Short delay
-        spriteRenderer.color = Color.white; // Revert color to normal
+        spriteRenderer.color = Color.red;
+        yield return new WaitForSeconds(0.1f);
+        spriteRenderer.color = Color.white;
     }
 
     public bool facingRight()
@@ -123,17 +111,12 @@ public class PlayerMovement : MonoBehaviour
         return mousePosition.x >= transform.position.x;
     }
 
-    // Method to handle player death
     void Die()
     {
-        // Play death animation
         animator.SetBool("isDead", true);
+        this.enabled = false;
+        rb.velocity = Vector2.zero;
 
-        // Disable player movement
-        this.enabled = false; // Disable this script
-        rb.velocity = Vector2.zero; // Stop the player movement
-
-        // Trigger game over sequence in GameManager
         GameManager gameManager = FindObjectOfType<GameManager>();
         if (gameManager != null)
         {
@@ -141,7 +124,6 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Method to update the health bar color based on current health
     void UpdateHealthBarColor()
     {
         if (healthFillImage != null)
@@ -151,5 +133,23 @@ public class PlayerMovement : MonoBehaviour
             healthFillImage.color = healthColor;
         }
     }
-}
 
+    public void Respawn()
+    {
+        // Locate the spawn point by tag and set the player’s position
+        GameObject spawnPointObj = GameObject.FindWithTag("SpawnPoint");
+        if (spawnPointObj != null)
+        {
+            transform.position = spawnPointObj.transform.position;
+        }
+        else
+        {
+            Debug.LogWarning("Spawn point not found in the scene.");
+        }
+
+        currentHealth = maxHealth;
+        animator.SetBool("isDead", false);
+        this.enabled = true;
+        UpdateHealthBarColor();
+    }
+}
