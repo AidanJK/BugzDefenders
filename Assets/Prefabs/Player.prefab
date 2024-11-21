@@ -172,6 +172,8 @@ MonoBehaviour:
   maxHealth: 100
   healthSlider: {fileID: 0}
   healthFillImage: {fileID: 0}
+  deathAudio: {fileID: 8300000, guid: 277059318a5999b4aa095a177e88da06, type: 3}
+  hurtAudio: {fileID: 8300000, guid: 39313b019647f9c4e9c2a25b5b9ed51e, type: 3}
 --- !u!95 &90609046011854057
 Animator:
   serializedVersion: 5
@@ -212,6 +214,7 @@ MonoBehaviour:
   shootAnimationLength: 1.2
   stationaryDelayOffset: 0.3
   movingDelayOffset: 1.2
+  shootSound: {fileID: 8300000, guid: bd44b3231500c0643a447c447762aaa7, type: 3}
 --- !u!82 &4801822752029630850
 AudioSource:
   m_ObjectHideFlags: 0
@@ -322,6 +325,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   partyBugs: []
   spawnOffsetRadius: 1.5
+  addBugSound: {fileID: 8300000, guid: 34d8725cbb9b7dd42ae5537f6cf3d837, type: 3}
 --- !u!1 &1103052174505127791
 GameObject:
   m_ObjectHideFlags: 0

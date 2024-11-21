@@ -114,6 +114,9 @@ MonoBehaviour:
   maxHealth: 50
   strengthLevel: 1
   bugAllyPrefab: {fileID: 0}
+  attackEnemy: {fileID: 8300000, guid: 729904436d069e04186f29a1313d54c9, type: 3}
+  deathEnemySound: {fileID: 8300000, guid: 7ae00acca0b6d444cac386d3ab1d2dd5, type: 3}
+  hurtSound: {fileID: 8300000, guid: 39313b019647f9c4e9c2a25b5b9ed51e, type: 3}
 --- !u!50 &4413908900778492909
 Rigidbody2D:
   serializedVersion: 4

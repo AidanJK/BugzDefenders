@@ -184,6 +184,10 @@ MonoBehaviour:
   damageAmount: 5
   attackRange: 1
   attackCooldown: 1.5
+  attackEnemy: {fileID: 8300000, guid: 26b9a33549bc1bf4e950a2253b725d6a, type: 3}
+  getHurt: {fileID: 8300000, guid: 67c722ee4919af9428096cdfa30b2f5a, type: 3}
+  deathClip: {fileID: 8300000, guid: 243a760e41177274ab7b21d56272b424, type: 3}
+  shootClip: {fileID: 8300000, guid: d99bc15855b541748a19918dce17d177, type: 3}
 --- !u!95 &3220385347981724430
 Animator:
   serializedVersion: 5

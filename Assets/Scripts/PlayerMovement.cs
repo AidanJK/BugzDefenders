@@ -16,7 +16,11 @@ public class PlayerMovement : MonoBehaviour
     private Animator animator;
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
+    public AudioClip deathAudio;
+    public AudioClip hurtAudio;
     private AudioSource movementAudioSource;
+    private AudioSource deathAudioSource;
+    private AudioSource hurtAudioSource;
 
     void Start()
     {
@@ -24,6 +28,8 @@ public class PlayerMovement : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
         movementAudioSource = GetComponent<AudioSource>();
+        deathAudioSource = gameObject.AddComponent<AudioSource>();
+        hurtAudioSource = gameObject.AddComponent<AudioSource>();
         currentHealth = maxHealth;
 
         if (healthSlider != null)
@@ -81,6 +87,7 @@ public class PlayerMovement : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        hurtAudioSource.PlayOneShot(hurtAudio);
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
@@ -113,6 +120,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Die()
     {
+        deathAudioSource.PlayOneShot(deathAudio);
         animator.SetBool("isDead", true);
         this.enabled = false;
         rb.velocity = Vector2.zero;

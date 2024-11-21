@@ -35,9 +35,19 @@ public class EnemyUnit : MonoBehaviour
     public event DeathHandler OnDeath;
 
     private PlayerParty playerParty;
+    //private AudioSource attackAudioSource;
+    //private AudioSource shootAudioSource;
+    //private AudioSource deathAudioSource;
+    //private AudioSource hurtAudioSource;
+    //public AudioClip attackEnemy;
+    //public AudioClip deathEnemySound;
+    //public AudioClip hurtSound;
 
     void Start()
     {
+        //attackAudioSource = gameObject.AddComponent<AudioSource>();
+        //deathAudioSource = gameObject.AddComponent<AudioSource>();
+        //hurtAudioSource = gameObject.AddComponent<AudioSource>();
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
@@ -129,6 +139,7 @@ public class EnemyUnit : MonoBehaviour
 
     void AttackTarget()
     {
+        //attackAudioSource.PlayOneShot(attackEnemy);
         if (Time.time - lastAttackTime >= attackCooldown)
         {
             if (currentTarget.CompareTag("Ally"))
@@ -188,6 +199,7 @@ public class EnemyUnit : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+       // hurtAudioSource.PlayOneShot(hurtSound);
         currentHealth -= damage;
         StartCoroutine(FlashRed());
 
@@ -199,6 +211,7 @@ public class EnemyUnit : MonoBehaviour
 
     void Die()
     {
+        //deathAudioSource.PlayOneShot(deathEnemySound);
         if (animator != null)
         {
             animator.SetTrigger("Die");
@@ -220,6 +233,12 @@ public class EnemyUnit : MonoBehaviour
         {
             OnDeath.Invoke(gameObject);
         }
+
+        GetComponent<Collider2D>().enabled = false;
+        this.enabled = false;
+
+        // Notify GameManager to add score
+        GameManager.Instance?.AddScore(strengthLevel * 10); // Adjust points based on strengthLevel
 
         GetComponent<Collider2D>().enabled = false;
         this.enabled = false;

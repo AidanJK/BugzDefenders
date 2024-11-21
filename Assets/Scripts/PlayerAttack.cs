@@ -16,6 +16,8 @@ public class PlayerAttack : MonoBehaviour
 
     private float nextAttackTime = 0f;     // Time until the next attack is allowed
     private Animator animator;             // Reference to the Animator component
+    private AudioSource shootAudioSource;
+    public AudioClip shootSound;
 
     // Reference to the player's movement script
     private PlayerMovement playerMovement;
@@ -26,6 +28,7 @@ public class PlayerAttack : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
+        shootAudioSource = gameObject.AddComponent<AudioSource>();
 
         if (animator == null)
             Debug.LogError("Animator component missing from the player.");
@@ -106,6 +109,7 @@ public class PlayerAttack : MonoBehaviour
 
         // Instantiate the projectile
         GameObject projectile = Instantiate(projectilePrefab, firePointCurrent.position, Quaternion.identity);
+        shootAudioSource.PlayOneShot(shootSound);
 
         // Rotate the projectile to face the shooting direction
         float angle = Mathf.Atan2(shootDirection.y, shootDirection.x) * Mathf.Rad2Deg;

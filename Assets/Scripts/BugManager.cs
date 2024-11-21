@@ -26,8 +26,21 @@ public class BugFollowPlayer : MonoBehaviour
     private float lastAttackTime = 0f;
     public float attackCooldown = 1.5f;
 
+    //private AudioSource attackAudioSource;
+    //private AudioSource deathAudio;
+    //private AudioSource hurttAudioSource;
+    //private AudioSource shootProjectileClip;
+    //public AudioClip attackEnemy;
+    //public AudioClip getHurt;
+    //public AudioClip deathClip;
+    //public AudioClip shootClip;
+
     void Start()
     {
+        //shootProjectileClip = gameObject.AddComponent<AudioSource>();
+        //deathAudio = gameObject.AddComponent<AudioSource>();
+        //attackAudioSource = gameObject.AddComponent<AudioSource>();
+       // hurttAudioSource = gameObject.AddComponent<AudioSource>();
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
@@ -134,6 +147,7 @@ public class BugFollowPlayer : MonoBehaviour
         if (Time.time - lastShootTime >= shootCooldown)
         {
             Vector2 directionToEnemy = (currentTarget.position - transform.position).normalized;
+            //shootProjectileClip.PlayOneShot(shootClip);
 
             // Instantiate the projectile and set its direction and damage
             GameObject projectile = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
@@ -151,6 +165,7 @@ public class BugFollowPlayer : MonoBehaviour
 
     private void Die()
     {
+        //deathAudio.PlayOneShot(deathClip);
         if (animator != null)
         {
             animator.SetTrigger("Die");
@@ -174,6 +189,7 @@ public class BugFollowPlayer : MonoBehaviour
             EnemyUnit enemy = currentTarget.GetComponent<EnemyUnit>();
             if (enemy != null)
             {
+                //attackAudioSource.PlayOneShot(attackEnemy);
                 enemy.TakeDamage(damageAmount);
                 Debug.Log("Bug attacked the enemy!");
                 lastAttackTime = Time.time;
@@ -183,6 +199,7 @@ public class BugFollowPlayer : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        //hurttAudioSource.PlayOneShot(getHurt);
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 

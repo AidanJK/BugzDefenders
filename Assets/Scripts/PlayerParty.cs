@@ -5,9 +5,13 @@ public class PlayerParty : MonoBehaviour
 {
     public List<GameObject> partyBugs = new List<GameObject>(); // List of bugs in the player's party
     public float spawnOffsetRadius = 1.5f; // Distance around player to spawn the bug
+    public AudioClip addBugSound; // Sound to play when a bug is added to the party
+    private AudioSource audioSource;
 
     public void AddBugToParty(GameObject bugPrefab)
     {
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.PlayOneShot(addBugSound);
         if (bugPrefab != null)
         {
             // Calculate a random position near the player within the specified radius

@@ -7,11 +7,14 @@ public class Projectile : MonoBehaviour
     private Rigidbody2D rb;           // Reference to Rigidbody2D
     private Animator animator;        // Reference to Animator component
     private bool hasCollided = false; // Flag to prevent multiple collisions
+    private AudioSource impactAudioSource; // Audio source for impact sound
+    public AudioClip impactSound;     // Impact sound clip
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        impactAudioSource = gameObject.AddComponent<AudioSource>();
 
         if (rb == null)
             Debug.LogError("Rigidbody2D component missing from the projectile.");
@@ -32,6 +35,7 @@ public class Projectile : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
+        impactAudioSource.PlayOneShot(impactSound);
         if (collision.gameObject.CompareTag("Enemy"))
         {
             if (hasCollided) return;

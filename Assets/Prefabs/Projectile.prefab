@@ -185,4 +185,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 10
   damage: 20
-  range: 1
+  impactSound: {fileID: 8300000, guid: 7fb7672643b7dcc4fa322c875da1e0ad, type: 3}
