@@ -113,7 +113,7 @@ public class EnemyUnit : MonoBehaviour
 
         foreach (var hit in hits)
         {
-            if (hit.CompareTag("Ally"))  // Assuming bugs have the tag "Ally"
+            if (hit.CompareTag("Ally")) 
             {
                 float distance = Vector2.Distance(transform.position, hit.transform.position);
                 if (distance < nearestEnemyDistance)

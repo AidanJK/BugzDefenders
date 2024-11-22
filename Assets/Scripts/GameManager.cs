@@ -27,8 +27,6 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
-        DontDestroyOnLoad(gameObject); // Persist GameManager across scenes
     }
 
     private void Start()
@@ -85,7 +83,7 @@ public class GameManager : MonoBehaviour
     public void RestartLevel()
     {
         Time.timeScale = 1f; // Resume time in case it was paused
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Reload the current scene
+        SceneManager.LoadScene("MainMenu"); // Reload the current scene
     }
 
     // Method to quit the game (only works in a built application)
